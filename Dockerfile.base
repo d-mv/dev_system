@@ -1,0 +1,21 @@
+FROM debian:stable-slim
+
+RUN apt-get update && apt-get install -y \
+  inetutils-ping zsh tmux vim neovim unzip git fzf curl wget silversearcher-ag \
+  make ruby sudo
+
+RUN curl -fsSL https://fnm.vercel.app/install | zsh -s -- --install-dir "/root/.fnm" --skip-shell
+ENV PATH="/root/.fnm:$PATH"
+
+RUN echo 'eval "$(fnm env --use-on-cd --shell zsh)"' >>~/.zshrc
+RUN fnm install 22 --resolve-engines --corepack-enabled
+RUN fnm default 22
+
+RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
+
+RUN git clone https://github.com/zsh-users/zsh-autosuggestions /etc/zsh/zsh-autosuggestions
+RUN git clone https://github.com/zsh-users/zsh-history-substring-search /etc/zsh/zsh-history-substring-search
+RUN git clone https://github.com/zdharma-continuum/fast-syntax-highlighting /etc/zsh/fsh
+RUN curl https://raw.githubusercontent.com/d-mv/dotfiles/single/zshrc >>~/.zshrc
+
+# ENTRYPOINT ["zsh"]

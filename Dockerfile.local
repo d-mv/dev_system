@@ -1,0 +1,5 @@
+FROM dev_base:latest AS build
+
+WORKDIR /code
+
+# ENTRYPOINT ["zsh"]

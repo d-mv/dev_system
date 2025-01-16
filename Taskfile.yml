@@ -1,0 +1,50 @@
+version: 3
+
+env:
+  ENV: testing
+
+dotenv: ['.env', '{{.ENV}}/.env.', '{{.HOME}}/.env']
+
+tasks:
+  down:
+    cmds:
+      - docker compose down
+    silent: true
+  compose:
+    cmds:
+      - docker compose -p $SYSTEM_NAME --env-file .env build
+    silent: true
+  start-daemon:
+    cmds:
+      - docker compose -p $SYSTEM_NAME --env-file .env up -d
+    silent: true
+  start:
+    cmds:
+      - docker compose -p $SYSTEM_NAME --env-file .env up -d
+    silent: true
+  connect:
+    cmds:
+      - docker exec -it $(docker ps | rg dev | cut -c 1-12) zsh
+    silent: true
+  base/stop:
+    cmds:
+      - docker stop $BASE_CONTAINER_NAME
+    silent: true
+  base/clean:
+    cmds:
+      - docker rm -f $BASE_CONTAINER_NAME &> /dev/null
+      - docker rmi -f $BASE_IMAGE_NAME &> /dev/null
+    silent: true
+  base/build:
+    cmds:
+      - docker build -t $BASE_IMAGE_NAME -f Dockerfile.base .
+    silent: true
+  base/run:
+    cmds:
+      - docker build -t $BASE_IMAGE_NAME -f Dockerfile.base .
+      - docker run -v $CODE_PATH:/root/code -p $BASE_EXTERNAL_PORT:$BASE_INTERNAL_PORT --name $BASE_CONTAINER_NAME -it $BASE_IMAGE_NAME
+    silent: true
+  base/re-build:
+    cmds:
+      - task base/clean
+      - task base/build

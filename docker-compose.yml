@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:16.6
+    container_name: db
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    networks:
+      dev_network:
+        ipv4_address: ${DB_HOST}
+
+  local:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    container_name: local
+    ports:
+      - ${LOCAL_PORT}:${LOCAL_PORT}
+    environment:
+      CODE_FOLDER: ${CODE_FOLDER}
+      PORT: ${LOCAL_PORT}
+      DB_HOST: ${DB_HOST}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_USER: ${DB_USER}
+      # LOCAL: ${LOCAL}
+      # MONGODB_DB: ${MONGO_DB}
+      # MONGODB_USERNAME: ${MONGO_USERNAME}
+      # MONGODB_PASSWORD: ${MONGO_PASSWORD}
+      # MONGO_PORT: ${MONGO_PORT}
+      # USER_SERVICE_HOST: ${MOCK_API_HOST}
+      # USER_SERVICE_PORT: ${MOCK_API_PORT}
+      # USER_SERVICE_BASE_URL: ${MOCK_API_USER_SERVICE_BASE_URL}
+    volumes:
+      - ${CODE_FOLDER}:/root/code
+    tty: true
+    networks:
+      dev_network:
+        ipv4_address: ${LOCAL_HOST}
+
+networks:
+  dev_network:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.20.100.0/24"
+
