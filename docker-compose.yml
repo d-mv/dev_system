@@ -2,37 +2,71 @@ services:
   db:
     image: postgres:16.6
     container_name: db
+    restart: always
     environment:
       PGDATA: /var/lib/postgresql/data/pgdata
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    volumes:
+      - ${HOST_DATA_PATH}:/var/lib/postgresql/data
     networks:
       dev_network:
-        ipv4_address: ${DB_HOST}
+        ipv4_address: ${POSTGRES_HOST}
+
+  pgadmin4:
+    image: elestio/pgadmin:latest
+    container_name: pgadmin
+    depends_on:
+      - db
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_LISTEN_PORT: 8080
+    ports:
+      - ${PGADMIN_EXTERNAL_PORT}:8080
+    volumes:
+      - ${PGADMIN_SERVERS}:/pgadmin4/servers.json
+    networks:
+      dev_network:
+        ipv4_address: ${PGADMIN_HOST}
 
   local:
     build:
       context: .
       dockerfile: Dockerfile.local
     container_name: local
-    ports:
-      - ${LOCAL_PORT}:${LOCAL_PORT}
+    restart: always
+    depends_on:
+      - db
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          cpus: 3
+          memory: 10G
+        limits:
+          cpus: 6
+          memory: 20G
     environment:
-      CODE_FOLDER: ${CODE_FOLDER}
-      PORT: ${LOCAL_PORT}
-      DB_HOST: ${DB_HOST}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_USER: ${DB_USER}
-      # LOCAL: ${LOCAL}
-      # MONGODB_DB: ${MONGO_DB}
-      # MONGODB_USERNAME: ${MONGO_USERNAME}
-      # MONGODB_PASSWORD: ${MONGO_PASSWORD}
-      # MONGO_PORT: ${MONGO_PORT}
-      # USER_SERVICE_HOST: ${MOCK_API_HOST}
-      # USER_SERVICE_PORT: ${MOCK_API_PORT}
-      # USER_SERVICE_BASE_URL: ${MOCK_API_USER_SERVICE_BASE_URL}
+      NODE_ENV: "development"
+      DEPLOY_ENV: "local"
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_USERNAME: ${POSTGRES_USER}
+    ports:
+      - 5678:5678
+      - 5679:5679
+      - 5680:5680
+      - 5681:5681
+      - 5682:5682
     volumes:
-      - ${CODE_FOLDER}:/root/code
+      - ${HOST_CODE_PATH}:/root/code
     tty: true
     networks:
       dev_network:

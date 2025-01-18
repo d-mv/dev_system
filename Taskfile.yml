@@ -20,9 +20,18 @@ tasks:
     silent: true
   start:
     cmds:
-      - docker compose -p $SYSTEM_NAME --env-file .env up -d
+      - docker compose -p $SYSTEM_NAME --env-file .env up
+    silent: true
+  re-start:
+    cmds:
+      - task down
+      - task start-daemon
     silent: true
   connect:
+    cmds:
+      - docker compose exec local zsh
+    silent: true
+  connect-unused:
     cmds:
       - docker exec -it $(docker ps | rg dev | cut -c 1-12) zsh
     silent: true
@@ -39,12 +48,16 @@ tasks:
     cmds:
       - docker build -t $BASE_IMAGE_NAME -f Dockerfile.base .
     silent: true
+  base/build-no-cache:
+    cmds:
+      - docker build -t $BASE_IMAGE_NAME --no-cache -f Dockerfile.base .
+    silent: true
   base/run:
     cmds:
-      - docker build -t $BASE_IMAGE_NAME -f Dockerfile.base .
       - docker run -v $CODE_PATH:/root/code -p $BASE_EXTERNAL_PORT:$BASE_INTERNAL_PORT --name $BASE_CONTAINER_NAME -it $BASE_IMAGE_NAME
     silent: true
   base/re-build:
     cmds:
       - task base/clean
-      - task base/build
+      - task base/build-no-cache
+    silent: true
