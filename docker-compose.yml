@@ -67,6 +67,8 @@ services:
       - 5682:5682
     volumes:
       - ${HOST_CODE_PATH}:/root/code
+      - ${HOST_SSH_PUB_KEY}:/root/.ssh/id_rsa.pub
+      - ${HOST_SSH_PRIVATE_KEY}:/root/.ssh/id_rsa
     tty: true
     networks:
       dev_network:

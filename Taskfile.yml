@@ -61,3 +61,8 @@ tasks:
       - task base/clean
       - task base/build-no-cache
     silent: true
+  local/clean:
+    cmds:
+      - docker rm -f local &> /dev/null
+      - docker rmi -f dev_system-local &> /dev/null
+    silent: true
