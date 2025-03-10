@@ -1,25 +1,31 @@
 FROM debian:stable-slim
 
-RUN apt-get update && apt-get install -y \
-  inetutils-ping zsh wget tmux vim neovim unzip git git-lfs fzf curl wget silversearcher-ag \
-  make ruby sudo
+RUN mkdir -p /root/.config/fish
+
+RUN echo 'deb http://deb.debian.org/debian sid main' >>/etc/apt/sources.list
+RUN apt-get update && apt-get install -y inetutils-ping coreutils libc6 xsel gpg wget tmux vim unzip git git-lfs fzf curl wget silversearcher-ag make ruby sudo
+
+RUN echo 'deb http://download.opensuse.org/repositories/shells:/fish:/release:/4/Debian_Unstable/ /' | tee /etc/apt/sources.list.d/shells:fish:release:4.list
+RUN curl -fsSL https://download.opensuse.org/repositories/shells:fish:release:4/Debian_Unstable/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/shells_fish_release_4.gpg >/dev/null
+
+RUN apt update -y
+RUN apt autoremove -y
+RUN apt install -y fish
 
 RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
+
+RUN curl clone https://raw.githubusercontent.com/d-mv/dotfiles/refs/heads/local/config.fish >>~/.config/fish/config.fish
 
 # fnm
 RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/root/.fnm" --skip-shell
 ENV PATH="/root/.fnm:$PATH"
-RUN echo 'eval "$(fnm env --use-on-cd --shell zsh)"' >>~/.zshrc
+RUN echo 'eval "$(fnm env --use-on-cd --shell fish)"' >>~/.config/fish/config.fish
 # node
-RUN fnm install 22 --resolve-engines --corepack-enabled
-RUN fnm default 22
+RUN fnm install 23 --resolve-engines --corepack-enabled
+RUN fnm default 23
 # pnpm
-RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.zshrc" SHELL="$(which zsh)" zsh -
-# zsh plugins
-RUN git clone https://github.com/zsh-users/zsh-autosuggestions /etc/zsh/zsh-autosuggestions
-RUN git clone https://github.com/zsh-users/zsh-history-substring-search /etc/zsh/zsh-history-substring-search
-RUN git clone https://github.com/zdharma-continuum/fast-syntax-highlighting /etc/zsh/fsh
-RUN curl https://raw.githubusercontent.com/d-mv/dotfiles/refs/heads/local/zsh/clean.zshrc >>~/.zshrc
+RUN curl -fsSL https://get.pnpm.io/install.sh | SHELL=$(which fish) sh -
+
 RUN curl https://raw.githubusercontent.com/d-mv/dotfiles/refs/heads/local/tmux/tmux.conf >>~/.tmux.conf
 RUN git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 RUN echo "set -g @plugin 'tmux-plugins/tpm'" >>~/.tmux.conf
@@ -27,8 +33,12 @@ RUN echo "set -g @plugin 'tmux-plugins/tmux-sensible'" >>~/.tmux.conf
 RUN echo "set -g @plugin 'arcticicestudio/nord-tmux'" >>~/.tmux.conf
 RUN echo "run '~/.tmux/plugins/tpm/tpm'" >>~/.tmux.conf
 
-RUN echo "alias kod='cd ~/code'" >>~/.zshrc
+RUN echo "alias kod='cd ~/code'" >>~/.config/fish/config.fish
 
-RUN chsh -s $(which zsh) $USER
+RUN curl https://raw.githubusercontent.com/d-mv/dotfiles/refs/heads/local/git/gitconfig >>~/.gitconfig
 
-ENTRYPOINT ["zsh"]
+RUN git clone https://github.com/d-mv/dotfiles.git ~/.dotfiles
+
+RUN chsh -s $(which fish) $USER
+
+ENTRYPOINT ["fish"]

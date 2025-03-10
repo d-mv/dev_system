@@ -29,11 +29,11 @@ tasks:
     silent: true
   connect:
     cmds:
-      - docker compose exec local zsh
+      - docker compose exec local fish
     silent: true
   connect-unused:
     cmds:
-      - docker exec -it $(docker ps | rg dev | cut -c 1-12) zsh
+      - docker exec -it $(docker ps | rg dev | cut -c 1-12) fish
     silent: true
   base/stop:
     cmds:
