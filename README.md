@@ -54,3 +54,7 @@ The order is the following:
 1. `base/build`
 2. `start`
 3. `connect`
+
+To connect to the existing running container user:
+
+`docker exec -it <container_id> bash`
