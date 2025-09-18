@@ -4,27 +4,35 @@ RUN mkdir -p /root/.config/fish
 
 # install apps and libs
 RUN echo 'deb http://deb.debian.org/debian sid main' >>/etc/apt/sources.list
-RUN apt-get update && apt-get install -y inetutils-ping coreutils libc6 xsel gpg wget tmux vim unzip git git-lfs fzf curl wget silversearcher-ag make ruby jq sudo
+# RUN apt-get update && apt-get install -y inetutils-ping coreutils libc6 xsel gpg wget tmux vim unzip git git-lfs fzf curl wget silversearcher-ag make ruby jq sudo
 
 # install latest fish
-RUN echo 'deb http://download.opensuse.org/repositories/shells:/fish:/release:/4/Debian_Unstable/ /' | tee /etc/apt/sources.list.d/shells:fish:release:4.list
-RUN curl -fsSL https://download.opensuse.org/repositories/shells:fish:release:4/Debian_Unstable/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/shells_fish_release_4.gpg >/dev/null
-RUN apt update -y
-RUN apt autoremove -y
-RUN apt install -y fish
+RUN apt-get update -y
+RUN apt-get autoremove -y
+RUN apt-get install -y --no-install-recommends --fix-missing fish
+RUN apt-get install -y inetutils-ping coreutils libc6 xsel gpg wget tmux vim unzip git git-lfs fzf curl wget silversearcher-ag make ripgrep ruby jq sudo starship systemd systemd-sysv pciutils lshw
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # install task
-RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
+# RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
 
 # fnm
 RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "/root/.fnm" --skip-shell
 ENV PATH="/root/.fnm:$PATH"
 RUN echo 'eval "$(fnm env --use-on-cd --shell fish)"' >>~/.config/fish/config.fish
 # node
-RUN fnm install 22 --resolve-engines --corepack-enabled
-RUN fnm default 22
+RUN fnm install 24 --resolve-engines --corepack-enabled
+RUN fnm default 24
 # pnpm
-RUN curl -fsSL https://get.pnpm.io/install.sh | SHELL=$(which fish) sh -
+# RUN curl -fsSL https://get.pnpm.io/install.sh | SHELL=$(which fish) sh -
+
+# go
+RUN wget -O /tmp/go.tar.gz https://go.dev/dl/go1.22.5.linux-amd64.tar.gz && tar -C /usr/local -xzf /tmp/go.tar.gz && rm /tmp/go.tar.gz
+ENV PATH="/usr/local/go/bin:$PATH"
+
+# ollama
+RUN curl -fsSL https://ollama.com/install.sh | sh
+ENV PATH="/usr/local/bin:$PATH"
 
 RUN curl https://raw.githubusercontent.com/d-mv/dotfiles/refs/heads/local/tmux/tmux.conf >>~/.tmux.conf
 RUN git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
@@ -43,6 +51,16 @@ RUN chsh -s $(which fish) $USER
 RUN curl clone https://raw.githubusercontent.com/d-mv/dotfiles/refs/heads/local/config.fish >>~/.config/fish/config.fish
 RUN curl https://git.io/fisher --create-dirs -sLo ~/.config/fish/functions/fisher.fish
 RUN fish -c "fisher install jorgebucaran/hydro"
+
+# rust
+# RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+# RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+# RUN cargo binstall --strategies crate-meta-data jj-cli
+# RUN echo 'eval "$(rustup completions fish)"' >>~/.config/fish/config.fish
+# RUN echo 'eval "$(cargo-binstall completions fish)"' >>~/.config/fish/config.fish
+# RUN echo 'eval "$(cargo completions fish)"' >>~/.config/fish/config.fish
+# RUN echo 'export PATH="$HOME/.cargo/bin:$PATH"' >>~/.config/fish/config.fish
+# RUN echo 'source $HOME/.cargo/env.fish' >>~/.config/fish/config.fish
 
 ENV DEV_ENV=true
 RUN echo "Welcome to the dev environment!"

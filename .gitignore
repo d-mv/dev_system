@@ -13,3 +13,5 @@
 **/_backup
 **/google_storage.json
 **/.env.local
+**/certs
+**/metadata_config.json

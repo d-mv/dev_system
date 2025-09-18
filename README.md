@@ -58,3 +58,11 @@ The order is the following:
 To connect to the existing running container user:
 
 `docker exec -it <container_id> bash`
+
+Additional commands:
+
+`docker scout quickview`
+
+`docker debug <container_id>`
+
+`docker scout recommendations local://<container_id>`
